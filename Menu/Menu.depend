@@ -1,0 +1,8 @@
+# depslib dependency file v1.0
+1732212667 source:/home/aya/Desktop/Menu/main.c
+	<stdio.h>
+	<ctype.h>
+	<windows.h>
+	<unistd.h>
+	<termios.h>
+
