@@ -55,53 +55,19 @@ void clearBuffer() {
 void DisplayMenu(int currentPostion, int row, int col) {
     printf("\033[H\033[J"); // Clear screen
 
-    // "New" option
-    gotoxy(col / 2 - 10, 5);
-    printf("*----------------------*");
-    gotoxy(col / 2 - 10, 6);
-    if (currentPostion == 0) {
-        printf("* %s-> New%s           *", GREEN_COLOR, RESET_COLOR);
-    } else {
-        printf("* %sNew%s              *", BLUE_COLOR, RESET_COLOR);
+    char *options[] = {"New", "Display", "Modify", "Delete", "Exit"};
+    for (int i = 0; i < 5; i++) {
+        gotoxy(col / 2 - 10, 5 + i * 3);
+        printf("*----------------------*");
+        gotoxy(col / 2 - 10, 6 + i * 3);
+        if (currentPostion == i) {
+            printf("* %s-> %s%s            *", GREEN_COLOR, options[i], RESET_COLOR);
+        } else {
+            printf("* %s%s%s              *", BLUE_COLOR, options[i], RESET_COLOR);
+        }
+        gotoxy(col / 2 - 10, 7 + i * 3);
+        printf("*----------------------*");
     }
-    gotoxy(col / 2 - 10, 7);
-    printf("*----------------------*");
-
-    // "Display" option
-    gotoxy(col / 2 - 10, 10);
-    printf("*----------------------*");
-    gotoxy(col / 2 - 10, 11);
-    if (currentPostion == 1) {
-        printf("* %s-> Display%s       *", GREEN_COLOR, RESET_COLOR);
-    } else {
-        printf("* %sDisplay%s          *", BLUE_COLOR, RESET_COLOR);
-    }
-    gotoxy(col / 2 - 10, 12);
-    printf("*----------------------*");
-
-    // "Modify" option
-    gotoxy(col / 2 - 10, 15);
-    printf("*----------------------*");
-    gotoxy(col / 2 - 10, 16);
-    if (currentPostion == 2) {
-        printf("* %s-> Modify%s        *", GREEN_COLOR, RESET_COLOR);
-    } else {
-        printf("* %sModify%s          *", BLUE_COLOR, RESET_COLOR);
-    }
-    gotoxy(col / 2 - 10, 17);
-    printf("*----------------------*");
-
-    // "Exit" option
-    gotoxy(col / 2 - 10, 20);
-    printf("*----------------------*");
-    gotoxy(col / 2 - 10, 21);
-    if (currentPostion == 3) {
-        printf("* %s-> Exit%s          *", GREEN_COLOR, RESET_COLOR);
-    } else {
-        printf("* %sExit%s             *", BLUE_COLOR, RESET_COLOR);
-    }
-    gotoxy(col / 2 - 10, 22);
-    printf("*----------------------*");
 }
 
 struct Employee {
@@ -123,10 +89,7 @@ int isUniqueCode(struct Employee e[], int employeeCount, int code) {
 // Function to modify employee details
 void ModifyEmployee(struct Employee e[], int employeeCount) {
     int code, found = 0;
-
-    // Clear screen before modifying
     printf("\033[H\033[J");
-
     printf("Enter the employee code to modify: ");
     scanf("%d", &code);
 
@@ -134,12 +97,8 @@ void ModifyEmployee(struct Employee e[], int employeeCount) {
         if (e[i].code == code) {
             found = 1;
             printf("Employee found. Modifying details:\n");
-
-            // Modify Name
             printf("Enter new name for employee: ");
             scanf(" %[^\n]s", e[i].name);
-
-            // Modify Salary
             printf("Enter new salary for employee: ");
             scanf("%d", &e[i].salary);
             break;
@@ -148,17 +107,39 @@ void ModifyEmployee(struct Employee e[], int employeeCount) {
 
     if (!found) {
         printf("%sEmployee code not found.%s\n", RED_COLOR, RESET_COLOR);
-        clearBuffer();
-
     }
-
-
 
     printf("\nPress Enter to return to the menu...");
     clearBuffer();
-
     while (getch() != 10);
+}
 
+// Function to delete an employee
+void DeleteEmployee(struct Employee e[], int *employeeCount) {
+    int code, found = 0;
+    printf("\033[H\033[J");
+    printf("Enter the employee code to delete: ");
+    scanf("%d", &code);
+
+    for (int i = 0; i < *employeeCount; i++) {
+        if (e[i].code == code) {
+            found = 1;
+            for (int j = i; j < *employeeCount - 1; j++) {
+                e[j] = e[j + 1];
+            }
+            (*employeeCount)--;
+            printf("%sEmployee deleted successfully!%s\n", GREEN_COLOR, RESET_COLOR);
+            break;
+        }
+    }
+
+    if (!found) {
+        printf("%sEmployee code not found.%s\n", RED_COLOR, RESET_COLOR);
+    }
+
+    printf("\nPress Enter to return to the menu...");
+    clearBuffer();
+    while (getch() != 10);
 }
 
 int main(void) {
@@ -174,9 +155,9 @@ int main(void) {
             if (ch == 91) {
                 ch = getch();
                 if (ch == UP) {
-                    currentPostion = (currentPostion - 1 + 4) % 4;
+                    currentPostion = (currentPostion - 1 + 5) % 5;
                 } else if (ch == DOWN) {
-                    currentPostion = (currentPostion + 1) % 4;
+                    currentPostion = (currentPostion + 1) % 5;
                 }
             }
         }
@@ -185,11 +166,10 @@ int main(void) {
             if (currentPostion == 0) { // "New" option
                 printf("\033[H\033[J");
                 gotoxy(col / 2 - 10, 3);
-                printf(" %sNew Page%s \n", RED_COLOR, RESET_COLOR);
+                printf(" %sNew Employee%s \n", RED_COLOR, RESET_COLOR);
 
-                // Loop for entering employees
-                while (employeeCount < SIZE) {
-                    printf("Employee %d:\n", employeeCount + 1);
+                if (employeeCount < SIZE) {
+                    printf("Enter Employee Details:\n");
                     printf("--------------------------------\n");
 
                     // Validate code for uniqueness
@@ -207,28 +187,8 @@ int main(void) {
                         }
                     }
 
-                    // Validate Name
-                    valid = 0;
-                    while (!valid) {
-                        printf("Enter The Name of Employee: ");
-                        scanf(" %[^\n]s", e[employeeCount].name);
-
-                        valid = 1;
-                        for (int j = 0; e[employeeCount].name[j] != '\0'; j++) {
-                            if (!isalpha(e[employeeCount].name[j]) && e[employeeCount].name[j] != ' ') {
-                                valid = 0;
-                            }
-                        }
-
-                        if (e[employeeCount].name[0] == '\0') {
-                            valid = 0;
-                        }
-
-                        if (!valid) {
-                            printf("%sInvalid Name! Must contain only letters and spaces.%s\n", RED_COLOR, RESET_COLOR);
-                        }
-                    }
-
+                    printf("Enter The Name of Employee: ");
+                    scanf(" %[^\n]s", e[employeeCount].name);
 
                     valid = 0;
                     while (!valid) {
@@ -242,41 +202,28 @@ int main(void) {
                     }
 
                     employeeCount++;
-                    if (employeeCount == SIZE) {
-                        clearBuffer();
-                        printf("Press Enter to go to Menu");
-                        ch = getch();
-                        printf("-----------------------------------------------------\n");
-                    } else {
-                        clearBuffer();
-                        printf("\n Press Enter to go to Menu, or press '1' to add another employee: ");
-                        ch = getch();
-                        printf("-----------------------------------------------------\n");
-                    }
-
-                    if (ch == 10) {
-                        break;
-                    } else if (ch == 49) {
-                        continue;
-                    } else {
-                        break;
-                    }
+                    printf("%sEmployee added successfully!%s\n", GREEN_COLOR, RESET_COLOR);
+                } else {
+                    printf("%sMaximum employee limit reached!%s\n", RED_COLOR, RESET_COLOR);
                 }
+
+                printf("\nPress Enter to return to the menu...");
+                clearBuffer();
+                while (getch() != 10);
             } else if (currentPostion == 1) {
                 printf("\033[H\033[J");
                 gotoxy(col / 2 - 10, 3);
-                printf(" %sDisplay Page%s \n", RED_COLOR, RESET_COLOR);
+                printf(" %sEmployee List%s \n", RED_COLOR, RESET_COLOR);
 
-                // Check if there are employees to display
                 if (employeeCount == 0) {
-                    printf("No employees to display.\n");
+                    printf("%sNo employees to display.%s\n", RED_COLOR, RESET_COLOR);
                 } else {
                     for (int i = 0; i < employeeCount; i++) {
                         printf("Employee %d:\n", i + 1);
                         printf(" Code: %d\n", e[i].code);
                         printf(" Name: %s\n", e[i].name);
                         printf(" Salary: %d\n", e[i].salary);
-                        printf("-----------------------------------------------------\n");
+                        printf("-----------------------------------\n");
                     }
                 }
 
@@ -285,6 +232,8 @@ int main(void) {
             } else if (currentPostion == 2) {
                 ModifyEmployee(e, employeeCount);
             } else if (currentPostion == 3) {
+                DeleteEmployee(e, &employeeCount);
+            } else if (currentPostion == 4) {
                 flag = 0;
             }
         }
@@ -294,5 +243,6 @@ int main(void) {
         }
     }
 
+    printf("%sExiting program. Goodbye!%s\n", GREEN_COLOR, RESET_COLOR);
     return 0;
 }
